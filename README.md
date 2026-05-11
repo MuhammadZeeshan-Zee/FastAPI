@@ -300,8 +300,214 @@ app = FastAPI()
 
 @app.get("/")
 def home():
-    return {"message": "Hello FastAPI"}
+    return {"message": "welcome to home page"}
+
+@app.get("/users")
+def get_users():
+    users = ["ali", "abdullah"]
+    return users
+
+@app.post("/users")
+def create_user():
+    return {"message": "user added"}
 ```
+
+---
+
+# Understanding the Routes
+
+| Method | Route | Purpose |
+|------|------|------|
+| GET | / | Home route |
+| GET | /users | Get all users |
+| POST | /users | Create user |
+
+---
+
+# What is @app.get()?
+
+```python
+@app.get("/")
+```
+
+This tells FastAPI:
+
+```txt
+When someone sends a GET request to "/",
+run this function.
+```
+
+---
+
+# What is @app.post()?
+
+```python
+@app.post("/users")
+```
+
+This tells FastAPI:
+
+```txt
+When someone sends a POST request to "/users",
+run this function.
+```
+
+---
+
+# What is an API Route?
+
+Routes are endpoints users or frontend applications access.
+
+Example:
+
+```txt
+GET /users
+```
+
+means:
+
+```txt
+Fetch users data
+```
+
+---
+
+# Difference Between GET and POST
+
+| Method | Purpose |
+|------|------|
+| GET | Retrieve data |
+| POST | Create data |
+| PUT | Update data |
+| DELETE | Remove data |
+
+---
+
+# 8. Run FastAPI Server
+
+## Command
+
+```bash
+uvicorn main:app --reload
+```
+
+---
+
+# Open Swagger UI
+
+```txt
+http://127.0.0.1:8000/docs
+```
+
+---
+
+# Why Swagger Docs Are Amazing
+
+FastAPI automatically generates:
+
+- API documentation
+- route testing UI
+- request schemas
+- response docs
+
+This is one reason FastAPI became extremely popular.
+
+---
+
+# Test the Routes
+
+## Home Route
+
+### Request
+
+```txt
+GET /
+```
+
+### Response
+
+```json
+{
+  "message": "welcome to home page"
+}
+```
+
+---
+
+# Get Users Route
+
+### Request
+
+```txt
+GET /users
+```
+
+### Response
+
+```json
+[
+  "ali",
+  "abdullah"
+]
+```
+
+---
+
+# Create User Route
+
+### Request
+
+```txt
+POST /users
+```
+
+### Response
+
+```json
+{
+  "message": "user added"
+}
+```
+
+---
+
+# Current Project Structure
+
+```txt
+project/
+│
+├── venv/
+├── main.py
+├── requirements.txt
+├── .gitignore
+└── README.md
+```
+
+---
+
+# Important Beginner Learning
+
+Right now:
+
+```python
+users = ["ali", "abdullah"]
+```
+
+is temporary in-memory data.
+
+This means:
+
+- data disappears after server restart
+- not production-ready
+- not scalable
+
+Later we will replace this with:
+
+- PostgreSQL
+- MongoDB
+- SQLAlchemy
+- proper database architecture
+
 
 ---
 
