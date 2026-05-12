@@ -1,28 +1,38 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from typing import List
 
 class User(BaseModel):
     name:str
     age:int
-class Vehical(BaseModel):
-    model:str
-    company:str
 
 app=FastAPI()
+
+users: List[User]=[]
 
 @app.get("/")
 def home():
     return {"message":"welcome to home page"}
 
-@app.get("/users")
-def get_users():
-    users=["ali","abdullah"]
+@app.get("/user")
+def get_all_user():
     return users
 
-@app.post("/users")
+@app.post("/user")
 def create_user(user:User):
-    return user
+    users.append(user)
+    return {"message":"user created successfully"}
 
-@app.post("/vehical")
-def create_vehical(model: str, company:str):
-    return {"model":model, "Comapny":company}
+@app.get("/user/{id}")
+def get_user(id:int):
+    return users[id]
+
+@app.put("/user/{id}")
+def update_user(id:int, user: User):
+    users[id]=user
+    return user
+    
+@app.delete("/user/{id}")
+def delete_user(id:int):
+    users.pop(id)
+    return users

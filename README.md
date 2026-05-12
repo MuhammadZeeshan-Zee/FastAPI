@@ -7,7 +7,9 @@ This guide explains:
 - Installing packages
 - Activating environments
 - Starting FastAPI project
+- CRUD APIs
 - Pydantic schemas
+- Path parameters
 - Request validation
 - requirements.txt
 - Industry best practices
@@ -286,7 +288,7 @@ Uvicorn = Driver
 
 ---
 
-# 7. Create First FastAPI App
+# 7. Create First FastAPI CRUD App
 
 Create file:
 
@@ -299,36 +301,69 @@ Add:
 ```python
 from fastapi import FastAPI
 from pydantic import BaseModel
+from typing import List
 
-# User Schema
 class User(BaseModel):
     name: str
     age: int
 
-# Vehicle Schema
-class Vehicle(BaseModel):
-    model: str
-    company: str
-
 app = FastAPI()
+
+users: List[User] = []
 
 @app.get("/")
 def home():
     return {"message": "welcome to home page"}
 
-@app.get("/users")
-def get_users():
-    users = ["ali", "abdullah"]
+@app.get("/user")
+def get_all_user():
     return users
 
-@app.post("/users")
+@app.post("/user")
 def create_user(user: User):
+    users.append(user)
+    return {"message": "user created successfully"}
+
+@app.get("/user/{id}")
+def get_user(id: int):
+    return users[id]
+
+@app.put("/user/{id}")
+def update_user(id: int, user: User):
+    users[id] = user
     return user
 
-@app.post("/vehicles")
-def create_vehicle(vehicle: Vehicle):
-    return vehicle
+@app.delete("/user/{id}")
+def delete_user(id: int):
+    users.pop(id)
+    return users
 ```
+
+---
+
+# What is CRUD?
+
+CRUD stands for:
+
+| Operation | Meaning |
+|------|------|
+| Create | Add data |
+| Read | Fetch data |
+| Update | Modify data |
+| Delete | Remove data |
+
+---
+
+# Our CRUD Routes
+
+| Method | Route | Purpose |
+|------|------|------|
+| GET | / | Home route |
+| GET | /user | Get all users |
+| POST | /user | Create user |
+| GET | /user/{id} | Get single user |
+| PUT | /user/{id} | Update user |
+| DELETE | /user/{id} | Delete user |
 
 ---
 
@@ -353,22 +388,16 @@ FastAPI heavily depends on Pydantic.
 
 # What Are Schemas?
 
-These classes:
+This class:
 
 ```python
 class User(BaseModel):
 ```
 
-and
-
-```python
-class Vehicle(BaseModel):
-```
-
-are called:
+is called a:
 
 ```txt
-Schemas
+Schema
 ```
 
 Schemas define:
@@ -376,23 +405,6 @@ Schemas define:
 - request structure
 - response structure
 - validation rules
-
----
-
-# Why Are Schemas Important?
-
-Without schemas:
-
-- data becomes messy
-- validation becomes manual
-- APIs become unreliable
-
-Schemas make APIs:
-
-- clean
-- validated
-- predictable
-- production-ready
 
 ---
 
@@ -449,7 +461,7 @@ Example:
 
 FastAPI automatically returns validation error.
 
-Example response:
+Example:
 
 ```json
 {
@@ -465,195 +477,180 @@ Example response:
 
 ---
 
-# Understanding the Routes
+# What is List[User]?
 
-| Method | Route | Purpose |
-|------|------|------|
-| GET | / | Home route |
-| GET | /users | Get users |
-| POST | /users | Create user |
-| POST | /vehicles | Create vehicle |
+```python
+users: List[User] = []
+```
+
+This means:
+
+```txt
+users will store a list of User objects
+```
 
 ---
 
-# GET Route Example
+# Why Use Type Hinting?
+
+Type hints improve:
+
+- readability
+- autocomplete
+- debugging
+- scalability
+- developer experience
+
+This is industry standard.
+
+---
+
+# Understanding CRUD Routes
+
+# Create User
 
 ```python
-@app.get("/users")
-def get_users():
-    users = ["ali", "abdullah"]
+@app.post("/user")
+def create_user(user: User):
+    users.append(user)
+    return {"message": "user created successfully"}
+```
+
+Purpose:
+
+```txt
+Add new user
+```
+
+---
+
+# Get All Users
+
+```python
+@app.get("/user")
+def get_all_user():
     return users
 ```
 
 Purpose:
 
 ```txt
-Retrieve data
+Retrieve all users
 ```
 
 ---
 
-# POST Route Example
+# Get Single User
 
 ```python
-@app.post("/users")
-def create_user(user: User):
+@app.get("/user/{id}")
+def get_user(id: int):
+    return users[id]
+```
+
+Purpose:
+
+```txt
+Retrieve single user
+```
+
+---
+
+# Update User
+
+```python
+@app.put("/user/{id}")
+def update_user(id: int, user: User):
+    users[id] = user
     return user
 ```
 
 Purpose:
 
 ```txt
-Create data
+Update existing user
 ```
 
 ---
 
-# Request Body Example
+# Delete User
 
-## POST /users
-
-### Request
-
-```json
-{
-  "name": "Ali",
-  "age": 22
-}
+```python
+@app.delete("/user/{id}")
+def delete_user(id: int):
+    users.pop(id)
+    return users
 ```
 
-### Response
+Purpose:
 
-```json
-{
-  "name": "Ali",
-  "age": 22
-}
+```txt
+Delete user
 ```
 
 ---
 
-# Vehicle Request Example
+# What is a Path Parameter?
 
-## POST /vehicles
+Example:
 
-### Request
-
-```json
-{
-  "model": "Civic",
-  "company": "Honda"
-}
+```python
+@app.get("/user/{id}")
 ```
 
-### Response
+Here:
 
-```json
-{
-  "model": "Civic",
-  "company": "Honda"
-}
+```txt
+{id}
+```
+
+is called a:
+
+```txt
+Path Parameter
 ```
 
 ---
 
-# Query Parameters vs Request Body
+# Example Request
 
-## Query Parameters
+```txt
+GET /user/0
+```
+
+FastAPI extracts:
+
+```python
+id = 0
+```
+
+automatically.
+
+---
+
+# Query Parameters vs Path Parameters
+
+## Path Parameter
+
+Used for identifying resources.
 
 Example:
 
 ```txt
-/products?page=1
-```
-
-Used mostly for:
-
-- filtering
-- searching
-- sorting
-- pagination
-
----
-
-## Request Body
-
-Used for:
-
-- creating resources
-- sending structured data
-- large payloads
-
-Example:
-
-```json
-{
-  "name": "Ali",
-  "age": 22
-}
+/user/1
 ```
 
 ---
 
-# Important FastAPI Rule
+## Query Parameter
 
-## Primitive Types → Query Parameters
+Used for filtering/searching.
 
 Example:
-
-```python
-def get_user(name: str):
-```
-
-FastAPI treats this as:
 
 ```txt
-Query parameter
+/users?page=1
 ```
-
----
-
-## Pydantic Models → Request Body
-
-Example:
-
-```python
-def create_user(user: User):
-```
-
-FastAPI treats this as:
-
-```txt
-JSON request body
-```
-
----
-
-# Why Using Schemas is Better
-
-Bad:
-
-```python
-def create_vehicle(model: str, company: str):
-```
-
-Better:
-
-```python
-def create_vehicle(vehicle: Vehicle):
-```
-
-Why?
-
-Because schemas provide:
-
-- validation
-- scalability
-- cleaner APIs
-- reusable structures
-- automatic documentation
-
-This is how production APIs are built.
 
 ---
 
@@ -676,67 +673,67 @@ FastAPI automatically generates:
 - schema validation
 - interactive testing UI
 
-This is one reason FastAPI became extremely popular.
-
 ---
 
-# Test the Routes
+# Example Requests
 
-## Home Route
+# Create User
 
-### Request
+## Request
 
 ```txt
-GET /
+POST /user
 ```
 
-### Response
+## Body
 
 ```json
 {
-  "message": "welcome to home page"
+  "name": "Ali",
+  "age": 22
+}
+```
+
+## Response
+
+```json
+{
+  "message": "user created successfully"
 }
 ```
 
 ---
 
-# Get Users Route
+# Get All Users
 
-### Request
+## Request
 
 ```txt
-GET /users
+GET /user
 ```
 
-### Response
+## Response
 
 ```json
 [
-  "ali",
-  "abdullah"
+  {
+    "name": "Ali",
+    "age": 22
+  }
 ]
 ```
 
 ---
 
-# Create User Route
+# Get Single User
 
-### Request
+## Request
 
 ```txt
-POST /users
+GET /user/0
 ```
 
-### Request Body
-
-```json
-{
-  "name": "Ali",
-  "age": 22
-}
-```
-
-### Response
+## Response
 
 ```json
 {
@@ -747,31 +744,96 @@ POST /users
 
 ---
 
-# Create Vehicle Route
+# Update User
 
-### Request
+## Request
 
 ```txt
-POST /vehicles
+PUT /user/0
 ```
 
-### Request Body
+## Body
 
 ```json
 {
-  "model": "Civic",
-  "company": "Honda"
+  "name": "Abdullah",
+  "age": 25
 }
 ```
 
-### Response
+## Response
 
 ```json
 {
-  "model": "Civic",
-  "company": "Honda"
+  "name": "Abdullah",
+  "age": 25
 }
 ```
+
+---
+
+# Delete User
+
+## Request
+
+```txt
+DELETE /user/0
+```
+
+## Response
+
+```json
+[]
+```
+
+---
+
+# Important Beginner Learning
+
+Current data storage:
+
+```python
+users = []
+```
+
+is:
+
+- temporary
+- in-memory
+- not persistent
+
+After server restart:
+
+```txt
+All data disappears
+```
+
+---
+
+# Why This is NOT Production Ready
+
+Problems:
+
+- data loss
+- no persistence
+- no scalability
+- no concurrency safety
+
+---
+
+# Real Production Systems Use
+
+- PostgreSQL
+- MongoDB
+- MySQL
+- Redis
+
+Later we will learn:
+
+- SQLAlchemy
+- Prisma
+- Async database handling
+- Repository pattern
 
 ---
 
@@ -1012,19 +1074,21 @@ requirements.txt becomes polluted
 
 ## Mistake 3
 
-Using primitive types for complex request data.
+Using list index as database ID.
 
-Bad:
-
-```python
-def create_vehicle(model: str, company: str):
-```
-
-Better:
+Example:
 
 ```python
-def create_vehicle(vehicle: Vehicle):
+users[id]
 ```
+
+Problem:
+
+- unstable IDs
+- index errors
+- not production-safe
+
+Later we will use real database IDs.
 
 ---
 
@@ -1048,6 +1112,7 @@ Huge repository size
 ✅ Activate venv  
 ✅ Install packages inside venv  
 ✅ Use Pydantic schemas  
+✅ Use type hints  
 ✅ Freeze dependencies  
 ✅ Use requirements.txt  
 
@@ -1126,7 +1191,7 @@ FastAPI + Pydantic make backend development:
 Learning:
 
 ```txt
-venv + pip + requirements.txt + Pydantic
+venv + pip + Pydantic + CRUD APIs
 ```
 
 first is extremely important because these are core Python backend fundamentals.
