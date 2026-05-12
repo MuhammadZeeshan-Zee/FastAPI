@@ -7,6 +7,8 @@ This guide explains:
 - Installing packages
 - Activating environments
 - Starting FastAPI project
+- Pydantic schemas
+- Request validation
 - requirements.txt
 - Industry best practices
 - Common beginner mistakes
@@ -135,6 +137,7 @@ This is industry standard.
 
 ```bash
 mkdir fastapi-learning
+
 cd fastapi-learning
 ```
 
@@ -295,6 +298,17 @@ Add:
 
 ```python
 from fastapi import FastAPI
+from pydantic import BaseModel
+
+# User Schema
+class User(BaseModel):
+    name: str
+    age: int
+
+# Vehicle Schema
+class Vehicle(BaseModel):
+    model: str
+    company: str
 
 app = FastAPI()
 
@@ -308,8 +322,145 @@ def get_users():
     return users
 
 @app.post("/users")
-def create_user():
-    return {"message": "user added"}
+def create_user(user: User):
+    return user
+
+@app.post("/vehicles")
+def create_vehicle(vehicle: Vehicle):
+    return vehicle
+```
+
+---
+
+# What is BaseModel?
+
+```python
+from pydantic import BaseModel
+```
+
+`BaseModel` comes from Pydantic.
+
+Pydantic is used for:
+
+- data validation
+- request parsing
+- type checking
+- automatic serialization
+
+FastAPI heavily depends on Pydantic.
+
+---
+
+# What Are Schemas?
+
+These classes:
+
+```python
+class User(BaseModel):
+```
+
+and
+
+```python
+class Vehicle(BaseModel):
+```
+
+are called:
+
+```txt
+Schemas
+```
+
+Schemas define:
+
+- request structure
+- response structure
+- validation rules
+
+---
+
+# Why Are Schemas Important?
+
+Without schemas:
+
+- data becomes messy
+- validation becomes manual
+- APIs become unreliable
+
+Schemas make APIs:
+
+- clean
+- validated
+- predictable
+- production-ready
+
+---
+
+# User Schema Example
+
+```python
+class User(BaseModel):
+    name: str
+    age: int
+```
+
+This means:
+
+| Field | Type |
+|------|------|
+| name | string |
+| age | integer |
+
+---
+
+# What Happens Internally?
+
+When request comes:
+
+```json
+{
+  "name": "Ali",
+  "age": 22
+}
+```
+
+FastAPI + Pydantic:
+
+1. read JSON body
+2. validate fields
+3. validate types
+4. convert into Python object
+5. pass to function
+
+Automatically.
+
+---
+
+# What if Invalid Data Comes?
+
+Example:
+
+```json
+{
+  "name": "Ali",
+  "age": "hello"
+}
+```
+
+FastAPI automatically returns validation error.
+
+Example response:
+
+```json
+{
+  "detail": [
+    {
+      "type": "int_parsing",
+      "loc": ["body", "age"],
+      "msg": "Input should be a valid integer"
+    }
+  ]
+}
 ```
 
 ---
@@ -319,81 +470,196 @@ def create_user():
 | Method | Route | Purpose |
 |------|------|------|
 | GET | / | Home route |
-| GET | /users | Get all users |
+| GET | /users | Get users |
 | POST | /users | Create user |
+| POST | /vehicles | Create vehicle |
 
 ---
 
-# What is @app.get()?
+# GET Route Example
 
 ```python
-@app.get("/")
+@app.get("/users")
+def get_users():
+    users = ["ali", "abdullah"]
+    return users
 ```
 
-This tells FastAPI:
+Purpose:
 
 ```txt
-When someone sends a GET request to "/",
-run this function.
+Retrieve data
 ```
 
 ---
 
-# What is @app.post()?
+# POST Route Example
 
 ```python
 @app.post("/users")
+def create_user(user: User):
+    return user
 ```
 
-This tells FastAPI:
+Purpose:
 
 ```txt
-When someone sends a POST request to "/users",
-run this function.
+Create data
 ```
 
 ---
 
-# What is an API Route?
+# Request Body Example
 
-Routes are endpoints users or frontend applications access.
+## POST /users
+
+### Request
+
+```json
+{
+  "name": "Ali",
+  "age": 22
+}
+```
+
+### Response
+
+```json
+{
+  "name": "Ali",
+  "age": 22
+}
+```
+
+---
+
+# Vehicle Request Example
+
+## POST /vehicles
+
+### Request
+
+```json
+{
+  "model": "Civic",
+  "company": "Honda"
+}
+```
+
+### Response
+
+```json
+{
+  "model": "Civic",
+  "company": "Honda"
+}
+```
+
+---
+
+# Query Parameters vs Request Body
+
+## Query Parameters
 
 Example:
 
 ```txt
-GET /users
+/products?page=1
 ```
 
-means:
+Used mostly for:
+
+- filtering
+- searching
+- sorting
+- pagination
+
+---
+
+## Request Body
+
+Used for:
+
+- creating resources
+- sending structured data
+- large payloads
+
+Example:
+
+```json
+{
+  "name": "Ali",
+  "age": 22
+}
+```
+
+---
+
+# Important FastAPI Rule
+
+## Primitive Types → Query Parameters
+
+Example:
+
+```python
+def get_user(name: str):
+```
+
+FastAPI treats this as:
 
 ```txt
-Fetch users data
+Query parameter
 ```
 
 ---
 
-# Difference Between GET and POST
+## Pydantic Models → Request Body
 
-| Method | Purpose |
-|------|------|
-| GET | Retrieve data |
-| POST | Create data |
-| PUT | Update data |
-| DELETE | Remove data |
+Example:
 
----
+```python
+def create_user(user: User):
+```
 
-# 8. Run FastAPI Server
+FastAPI treats this as:
 
-## Command
-
-```bash
-uvicorn main:app --reload
+```txt
+JSON request body
 ```
 
 ---
 
-# Open Swagger UI
+# Why Using Schemas is Better
+
+Bad:
+
+```python
+def create_vehicle(model: str, company: str):
+```
+
+Better:
+
+```python
+def create_vehicle(vehicle: Vehicle):
+```
+
+Why?
+
+Because schemas provide:
+
+- validation
+- scalability
+- cleaner APIs
+- reusable structures
+- automatic documentation
+
+This is how production APIs are built.
+
+---
+
+# Swagger Docs
+
+Open:
 
 ```txt
 http://127.0.0.1:8000/docs
@@ -406,9 +672,9 @@ http://127.0.0.1:8000/docs
 FastAPI automatically generates:
 
 - API documentation
-- route testing UI
-- request schemas
-- response docs
+- request body forms
+- schema validation
+- interactive testing UI
 
 This is one reason FastAPI became extremely popular.
 
@@ -461,53 +727,51 @@ GET /users
 POST /users
 ```
 
+### Request Body
+
+```json
+{
+  "name": "Ali",
+  "age": 22
+}
+```
+
 ### Response
 
 ```json
 {
-  "message": "user added"
+  "name": "Ali",
+  "age": 22
 }
 ```
 
 ---
 
-# Current Project Structure
+# Create Vehicle Route
+
+### Request
 
 ```txt
-project/
-│
-├── venv/
-├── main.py
-├── requirements.txt
-├── .gitignore
-└── README.md
+POST /vehicles
 ```
 
----
+### Request Body
 
-# Important Beginner Learning
-
-Right now:
-
-```python
-users = ["ali", "abdullah"]
+```json
+{
+  "model": "Civic",
+  "company": "Honda"
+}
 ```
 
-is temporary in-memory data.
+### Response
 
-This means:
-
-- data disappears after server restart
-- not production-ready
-- not scalable
-
-Later we will replace this with:
-
-- PostgreSQL
-- MongoDB
-- SQLAlchemy
-- proper database architecture
-
+```json
+{
+  "model": "Civic",
+  "company": "Honda"
+}
+```
 
 ---
 
@@ -679,7 +943,7 @@ pip install -r requirements.txt
 
 ---
 
-# 14. Recommended Project Structure
+# 14. Recommended Beginner Project Structure
 
 ```txt
 project/
@@ -748,12 +1012,18 @@ requirements.txt becomes polluted
 
 ## Mistake 3
 
-Forgetting requirements.txt.
+Using primitive types for complex request data.
 
-Problem:
+Bad:
 
-```txt
-Project fails on another machine
+```python
+def create_vehicle(model: str, company: str):
+```
+
+Better:
+
+```python
+def create_vehicle(vehicle: Vehicle):
 ```
 
 ---
@@ -777,6 +1047,7 @@ Huge repository size
 ✅ Create venv  
 ✅ Activate venv  
 ✅ Install packages inside venv  
+✅ Use Pydantic schemas  
 ✅ Freeze dependencies  
 ✅ Use requirements.txt  
 
@@ -838,25 +1109,24 @@ uvicorn main:app --reload
 
 # 19. Industry Note
 
-Modern companies are gradually moving toward:
+Modern backend systems heavily rely on:
 
-- uv
-- poetry
-- pyproject.toml
+- request validation
+- typed schemas
+- API contracts
+- automatic documentation
 
-But learning:
+FastAPI + Pydantic make backend development:
+
+- fast
+- scalable
+- clean
+- developer-friendly
+
+Learning:
 
 ```txt
-venv + pip + requirements.txt
+venv + pip + requirements.txt + Pydantic
 ```
 
-first is VERY important.
-
-Because it teaches:
-
-- Python environments
-- dependency management
-- package isolation
-- ecosystem fundamentals
-
-These concepts are used everywhere.
+first is extremely important because these are core Python backend fundamentals.
