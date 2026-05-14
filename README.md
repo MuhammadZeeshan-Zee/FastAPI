@@ -1008,12 +1008,25 @@ pip install -r requirements.txt
 # 14. Recommended Beginner Project Structure
 
 ```txt
-project/
+FastAPI/
 │
 ├── venv/
+├── api/
+│   └── routes/
+│       └── user.py
+├── core/
+│   ├── config.py
+│   └── database.py
+├── schemas/
+│   └── user.py
+├── services/
+│   └── user_services.py
 ├── main.py
 ├── requirements.txt
+├── .env
+├── .env.example
 ├── .gitignore
+├── Makefile
 └── README.md
 ```
 
